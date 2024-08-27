@@ -1,6 +1,6 @@
-# Synology backupper
+# Synology backuper
 
-Send off a single file to be backed up on a Synology NAS.
+Back up a single file on a Synology NAS.
 
 Reads the file `config.json` in the same directory as the script. The file should contain the following:
 
@@ -11,7 +11,8 @@ Reads the file `config.json` in the same directory as the script. The file shoul
     "username": "myusername",
     "password": "mypassword",
     "share_name": "my_backup",
-    "filename": "path/to/file.foo",
+    "filename": "path/to/local/file.ext",
 }
+```
 
-The program then connects to the Synology NAS at `my.domain.com:3000`, logs in with the user `myusername` and sends the file `path/to/file.foo` to the share `my_backup`, but under the filename `file_YYMMDD_HHMMSS.foo` where `YYMMDD_HHMMSS` is the current date and time.
+The program then connects to the Synology NAS at `my.domain.com:3000`, logs in with the user `myusername` and sends the file `path/to/local/file.ext` to the share `my_backup`, but under the filename `file_YYMMDD_HHMMSS.foo` (where `YYMMDD_HHMMSS` is the current date and time).
