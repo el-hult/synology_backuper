@@ -1,0 +1,5 @@
+# build output
+/target
+
+# contains password, which is a secret!
+config.json 
