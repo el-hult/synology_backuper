@@ -2,6 +2,11 @@ use anyhow::{anyhow, Result};
 use core::panic;
 use reqwest::blocking::multipart::{Form, Part};
 use serde::Deserialize;
+use std::error::Error;
+use std::fs::File;
+use std::io::{Read, Write};
+use zip::write::SimpleFileOptions;
+use zip::ZipWriter;
 
 struct Client {
     client: reqwest::blocking::Client,
@@ -322,6 +327,33 @@ fn upload_file(client: &Client, apis: &[ApiInfo], target_path: &str, filename: &
     }
 }
 
+/// Compresses the contents of a directory into a zip file
+/// If the input path is a file, it will be compressed into a zip file
+fn compress_iter(
+    input_path: &std::path::Path,
+    output_path: &std::path::Path,
+) -> Result<(), Box<dyn Error>> {
+    let inner = File::create(output_path)?;
+    let mut zip = ZipWriter::new(inner);
+    let options = SimpleFileOptions::default();
+
+    walkdir::WalkDir::new(input_path)
+        .into_iter()
+        .filter_map(|e| e.ok())
+        .filter(|e| e.file_type().is_file())
+        .for_each(|input_path| {
+            let input_path = input_path.path();
+            let mut input_file = File::open(input_path).unwrap();
+            let mut buff = Vec::new();
+            zip.start_file_from_path(input_path, options).unwrap();
+            input_file.read_to_end(&mut buff).unwrap();
+            zip.write_all(&buff).unwrap();
+        });
+
+    zip.finish()?;
+    Ok(())
+}
+
 #[derive(Debug, Deserialize)]
 struct Config {
     domain: String,
@@ -338,6 +370,15 @@ fn main() {
     )
     .expect("Could not parse config file");
 
+    let input_path = config.filename;
+    let output_path = input_path.clone() + ".zip";
+
+    compress_iter(
+        std::path::Path::new(&input_path),
+        std::path::Path::new(&output_path),
+    )
+    .expect("Failed compressing the target file");
+
     let client = Client {
         client: reqwest::blocking::Client::builder()
             .cookie_store(true)
@@ -352,7 +393,7 @@ fn main() {
     match shares.iter().find(|x| x.name == config.share_name) {
         Some(share) => {
             let share_path = &share.path;
-            if let Err(e) = upload_file(&client, &api_info, share_path, &config.filename) {
+            if let Err(e) = upload_file(&client, &api_info, share_path, &output_path) {
                 println!("Error uploading file: {}", e);
             }
         }

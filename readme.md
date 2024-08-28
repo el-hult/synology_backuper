@@ -15,4 +15,7 @@ Reads the file `config.json` in the same directory as the script. The file shoul
 }
 ```
 
-The program then connects to the Synology NAS at `my.domain.com:3000`, logs in with the user `myusername` and sends the file `path/to/local/file.ext` to the share `my_backup`, but under the filename `file_YYMMDD_HHMMSS.foo` (where `YYMMDD_HHMMSS` is the current date and time).
+The program then connects to the Synology NAS at `my.domain.com:3000`, logs in with the user `myusername` and sends the file `path/to/local/file.ext` to the share `my_backup`.
+Before sending it, the program compresses the target into `path/to/local/file.ext.zip`.
+The sent file has the name `file.ext_YYMMDD_HHMMSS.zip` (where `YYMMDD_HHMMSS` is the current date and time).
+The zip file loiters around after the upload, so you might want to delete it afterwards.
